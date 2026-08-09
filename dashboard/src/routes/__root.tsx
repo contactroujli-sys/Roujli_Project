@@ -85,10 +85,10 @@ export interface RouterContext {
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: ({ location }) => {
     // Basic synchronous check for token before route load
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("roujli_access_token");
-      if (!token && location.pathname !== "/login") {
-        throw redirect({ to: "/login" });
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('roujli_access_token');
+      if (!token && location.pathname !== '/login') {
+        throw redirect({ to: '/login' });
       }
     }
   },

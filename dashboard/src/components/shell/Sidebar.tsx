@@ -71,11 +71,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       >
         <div className="flex h-16 shrink-0 items-center justify-between px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
-            <img
-              src="/icon.png"
-              alt="ROUJLI Logo"
-              className="h-8 w-8 shrink-0 rounded-xl object-contain"
-            />
+            <img src="/icon.png" alt="ROUJLI Logo" className="h-8 w-8 shrink-0 rounded-xl object-contain" />
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold tracking-tight">ROUJLI</span>
               <span className="block truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -126,7 +122,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               {user?.email || "admin@roujli.com"}
             </p>
           </div>
-          <button
+          <button 
             onClick={() => {
               logout();
               window.location.href = "/login";
