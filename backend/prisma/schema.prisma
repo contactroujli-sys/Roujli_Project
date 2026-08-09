@@ -1,0 +1,535 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  BUSINESS
+  SERVICE_PROVIDER
+  CREATOR
+  ADMIN
+}
+
+enum SubscriptionType {
+  START
+  GROW
+  SCALE
+  ENTERPRISE
+  FREE
+  PLUS
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+}
+
+enum RequestType {
+  PRODUCT
+  SERVICE
+  OFFER
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_OPPORTUNITY
+  GROWTH_RECOMMENDATION
+  GROWTH_SCORE_CHANGED
+  CUSTOMER_REQUEST
+  GROWTH_TASK
+  REQUEST_ACCEPTED
+  REQUEST_REJECTED
+  BUSINESS_FOLLOW
+  NEW_REQUEST
+  FOLLOW_REQUEST
+}
+
+enum ReportType {
+  USER
+  BUSINESS
+  CONTENT
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id         String  @id @default(cuid())
+  email      String  @unique
+  password   String
+  role       Role
+  isVerified Boolean @default(false)
+  isPrivate  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile            Profile?
+  business           Business?
+  subscriptions      UserSubscription[]
+  verificationCodes  VerificationCode[]
+  refreshTokens      RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  savedBusinesses    SavedBusiness[]
+  following          BusinessFollow[]
+  requests           Request[]
+  notifications      Notification[]
+  conversations      Conversation[]
+  reports            Report[]
+}
+
+model VerificationCode {
+  id        String   @id @default(cuid())
+  code      String
+  expiresAt DateTime
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  code      String
+  expiresAt DateTime
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Profile {
+  id String @id @default(cuid())
+
+  firstName String
+  lastName  String
+
+  phone  String?
+  avatar String?
+  bio    String?
+
+  country String?
+  city    String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id String @id @default(cuid())
+
+  name String  @unique
+  icon String?
+
+  businesses Business[]
+
+  createdAt DateTime @default(now())
+}
+
+model Business {
+  id String @id @default(cuid())
+
+  name String
+  slug String @unique
+
+  description String?
+
+  logo  String?
+  cover String?
+
+  phone String?
+  email String?
+
+  website  String?
+  whatsapp String?
+
+  address String?
+
+  verified Boolean @default(false)
+
+  growthScore Int @default(0)
+  monthlyGrowth Int @default(0)
+  rating      Float @default(0.0)
+  reviews     Int   @default(0)
+
+  ownerId String @unique
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  products Product[]
+  services Service[]
+  offers Offer[]
+  savedBy SavedBusiness[]
+  followers BusinessFollow[]
+  requests Request[]
+  conversations Conversation[]
+  growthHistory GrowthHistory[]
+  metrics BusinessMetric?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SavedBusiness {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  savedAt    DateTime @default(now())
+
+  @@unique([userId, businessId])
+  @@index([userId])
+}
+
+model BusinessFollow {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId String
+  business   Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  status     FollowStatus @default(PENDING)
+  followedAt DateTime     @default(now())
+
+  @@unique([userId, businessId])
+  @@index([userId])
+  @@index([businessId])
+}
+
+model Offer {
+  id String @id @default(cuid())
+
+  title String
+  description String?
+  discount Float?
+  discountType String? @default("PERCENTAGE")
+  code String?
+  currency String? @default("USD")
+  image String?
+  expiresAt DateTime?
+
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+
+  requests Request[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+
+  price Float
+  currency    String  @default("USD")
+  stock       Int     @default(0)
+  rating      Float   @default(0.0)
+
+  image String?
+
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+
+  requests Request[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id String @id @default(cuid())
+
+  name        String
+  description String?
+
+  price Float
+  currency    String  @default("USD")
+
+  duration Int?
+
+  image String?
+
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+
+  requests Request[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Request {
+  id            String        @id @default(cuid())
+  type          RequestType
+  status        RequestStatus @default(PENDING)
+
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  businessId    String
+  business      Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  productId     String?
+  product       Product?      @relation(fields: [productId], references: [id])
+
+  serviceId     String?
+  service       Service?      @relation(fields: [serviceId], references: [id])
+
+  offerId       String?
+  offer         Offer?        @relation(fields: [offerId], references: [id])
+
+  name          String
+  phone         String?
+  email         String?
+  note          String?
+  quantity      Int           @default(1)
+  preferredDate DateTime?
+  ownerNote     String?
+
+  notifications Notification[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([businessId])
+}
+
+model BusinessInsight {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String           @default("")
+  body      String           @default("")
+  message   String?
+  data      Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  requestId String?
+  request   Request?         @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([userId, isRead])
+}
+
+model SubscriptionPlan {
+  id              String           @id @default(cuid())
+  type            SubscriptionType @unique
+  name            String           @default("")
+  price           Float            @default(0)
+  currency        String           @default("DZD")
+  suitableFor     String           @default("")
+  maxProducts     Int              @default(5)
+  maxServices     Int              @default(5)
+  maxOffers       Int              @default(1)
+  priority        Int              @default(0)
+  verifiedBadge   Boolean          @default(false)
+  hasAnalytics    Boolean          @default(false)
+  hasGrowthEngine Boolean          @default(false)
+  hasAI           Boolean          @default(false)
+  hasB2B          Boolean          @default(false)
+  isCustomPrice   Boolean          @default(false)
+  features        Json?
+
+  subscriptions UserSubscription[]
+
+  createdAt DateTime @default(now())
+}
+
+model AddOnService {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  price       Float?
+  currency    String   @default("DZD")
+  category    String   @default("ADD_ON")
+  icon        String?
+  createdAt   DateTime @default(now())
+}
+
+model UserSubscription {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  planId String
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  status SubscriptionStatus @default(ACTIVE)
+
+  startDate DateTime @default(now())
+
+  endDate DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessId    String
+  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  messages      Message[]
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([userId, businessId])
+  @@index([userId])
+  @@index([businessId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  body           String
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  senderRole     String       // "USER" | "BUSINESS"
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  type        ReportType
+  subject     String
+  reason      String
+  reporterId  String
+  reporter    User         @relation(fields: [reporterId], references: [id])
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([reporterId])
+}
+
+model AdminSettings {
+  id              String  @id @default("default")
+  platformName    String  @default("ROUJLI")
+  supportEmail    String  @default("support@roujli.com")
+  defaultCurrency String  @default("DZD")
+  defaultTimezone String  @default("GMT+1")
+  senderName      String  @default("ROUJLI Platform")
+  senderAddress   String  @default("no-reply@roujli.com")
+  welcomeEmail    Boolean @default(true)
+  weeklyDigest    Boolean @default(true)
+  renewalReminders Boolean @default(true)
+  notifyNewBusiness Boolean @default(true)
+  notifyNewReports  Boolean @default(true)
+  notifyFailedPayments Boolean @default(true)
+  notifyScoreAnomalies Boolean @default(false)
+  require2FA      Boolean @default(true)
+  sessionTimeout  Boolean @default(true)
+  ipAllowlist     Boolean @default(false)
+  auditActions    Boolean @default(true)
+  rateLimiting    Boolean @default(true)
+  sandboxMode     Boolean @default(false)
+  updatedAt       DateTime @updatedAt
+}
+
+model PlatformMetric {
+  id               String   @id @default(cuid())
+  month            String   @unique
+  revenue          Float
+  users            Int
+  activeBusinesses Int
+  createdAt        DateTime @default(now())
+}
+
+model AcquisitionChannel {
+  id         String   @id @default(cuid())
+  channel    String   @unique
+  percentage Float
+  createdAt  DateTime @default(now())
+}
+
+model GrowthHistory {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  score      Int
+  breakdown  Json
+  recordedAt DateTime @default(now())
+
+  @@index([businessId, recordedAt])
+}
+
+model BusinessMetric {
+  id               String   @id @default(cuid())
+  businessId       String   @unique
+  business         Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  profileViews     Int      @default(0)
+  productViews     Int      @default(0)
+  serviceViews     Int      @default(0)
+  totalInteractions Int     @default(0)
+  responseTimeMins Float    @default(30.0)
+  responseRate     Float    @default(100.0)
+  updatedAt        DateTime @updatedAt
+}
+
