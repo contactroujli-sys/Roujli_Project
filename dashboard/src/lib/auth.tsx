@@ -50,8 +50,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }));
             }
           }
-        } catch (e) {
-          clearTokens();
+        } catch (e: any) {
+          // Do not clear tokens on network errors (e.g. when Vercel tries to hit localhost).
+          // Only clear if the server explicitly tells us we're unauthorized.
+          if (e.message?.toLowerCase().includes("unauthorized") || e.message?.toLowerCase().includes("access denied")) {
+            clearTokens();
+            setUser(null);
+          }
+          console.error("Auth init profile fetch failed:", e);
         }
       }
       setIsLoading(false);
