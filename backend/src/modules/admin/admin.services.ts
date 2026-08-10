@@ -35,7 +35,8 @@ export async function globalSearch(query: string) {
     prisma.request.findMany({
       where: { 
         OR: [
-          { message: { contains: query, mode: 'insensitive' } },
+          { note: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: 'insensitive' } },
           { business: { name: { contains: query, mode: 'insensitive' } } }
         ]
       },
