@@ -27,7 +27,8 @@ const app = express();
 // ─── Core Middlewares ─────────────────────────────────────────────────────────
 
 app.use(cors());
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+const helmetFn = (typeof helmet === "function" ? helmet : (helmet as any).default) as typeof helmet;
+app.use(helmetFn({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(morgan("dev"));
 app.use(express.json());
 
