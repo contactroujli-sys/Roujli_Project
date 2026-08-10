@@ -3,10 +3,17 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Ensure uploads directory exists (use /tmp on serverless environments like Vercel)
+const uploadsDir = process.env.VERCEL
+  ? "/tmp/uploads"
+  : path.join(process.cwd(), "uploads");
+
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (_err) {
+  // Ignore filesystem errors in read-only serverless environments
 }
 
 const storage = multer.diskStorage({
