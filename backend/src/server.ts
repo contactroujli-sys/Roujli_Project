@@ -9,9 +9,13 @@ import logger from "./utils/logger.js";
 const PORT = Number(process.env.PORT) || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
 
-const httpServer = http.createServer(app);
-initSocketServer(httpServer);
+if (!process.env.VERCEL) {
+  const httpServer = http.createServer(app);
+  initSocketServer(httpServer);
 
-httpServer.listen(PORT, HOST, () => {
-  logger.info(`Server running on http://${HOST}:${PORT}`);
-});
+  httpServer.listen(PORT, HOST, () => {
+    logger.info(`Server running on http://${HOST}:${PORT}`);
+  });
+}
+
+export default app;
