@@ -119,7 +119,7 @@ class _SubscriptionDialogState extends State<_SubscriptionDialog> {
     final name = plan['name'] ?? '';
     final type = plan['type'] ?? '';
     final price = (plan['price'] as num?)?.toDouble() ?? 0.0;
-    final currency = plan['currency'] ?? 'DZD';
+    final currency = plan['currency'] ?? 'DZ';
 
     showModalBottomSheet(
       context: context,
@@ -184,15 +184,15 @@ class _SubscriptionDialogState extends State<_SubscriptionDialog> {
                             final type = plan['type'] ?? '';
                             final name = plan['name'] ?? type;
                             final price = (plan['price'] as num?)?.toDouble() ?? 0.0;
-                            final currency = plan['currency'] ?? 'DZD';
+                            final currency = plan['currency'] ?? 'DZ';
                             final suitableFor = plan['suitableFor'] ?? '';
                             final features = (plan['features'] as List?)?.cast<String>() ?? [];
                             final isActive = activePlanType == type;
                             final isPopular = type == 'SCALE';
 
-                            String priceDisplay = '0 DZD';
+                            String priceDisplay = '0 DZ';
                             if (type == 'ENTERPRISE') {
-                              priceDisplay = 'From 15,000 DZD / mo';
+                              priceDisplay = 'From 15,000 DZ / mo';
                             } else if (price > 0) {
                               priceDisplay = '${price.toStringAsFixed(0)} $currency / mo';
                             }

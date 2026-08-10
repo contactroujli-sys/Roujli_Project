@@ -662,7 +662,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen>
                               Text(p.description!, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
                             ],
                             const SizedBox(height: 8),
-                            Text('${p.price.toStringAsFixed(0)} DZD', style: const TextStyle(color: goldColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text('${p.price.toStringAsFixed(0)} DZ', style: const TextStyle(color: goldColor, fontSize: 18, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -727,7 +727,7 @@ class _BusinessProfileScreenState extends ConsumerState<BusinessProfileScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${s.price.toStringAsFixed(0)} DZD', style: const TextStyle(color: goldColor, fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('${s.price.toStringAsFixed(0)} DZ', style: const TextStyle(color: goldColor, fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   GestureDetector(
                     onTap: () => _navigateToRequest('SERVICE', s.id, s.name, price: s.price, duration: s.duration),

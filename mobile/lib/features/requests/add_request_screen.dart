@@ -239,7 +239,7 @@ class _AddRequestScreenState extends ConsumerState<AddRequestScreen> {
                       ),
                       if (widget.price != null)
                         Text(
-                          '${widget.price!.toStringAsFixed(0)} DZD',
+                          '${widget.price!.toStringAsFixed(0)} DZ',
                           style: const TextStyle(
                             color: goldColor,
                             fontSize: 18,

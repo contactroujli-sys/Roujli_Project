@@ -250,7 +250,7 @@ model Offer {
   discount Float?
   discountType String? @default("PERCENTAGE")
   code String?
-  currency String? @default("DZD")
+  currency String? @default("DZ")
   image String?
   expiresAt DateTime?
 
@@ -270,7 +270,7 @@ model Product {
   description String?
 
   price Float
-  currency    String  @default("DZD")
+  currency    String  @default("DZ")
   stock       Int     @default(0)
   rating      Float   @default(0.0)
 
@@ -292,7 +292,7 @@ model Service {
   description String?
 
   price Float
-  currency    String  @default("DZD")
+  currency    String  @default("DZ")
 
   duration Int?
 

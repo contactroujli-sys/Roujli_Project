@@ -148,7 +148,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
           final type = plan['type'] ?? '';
           final name = plan['name'] ?? type;
           final price = (plan['price'] as num?)?.toDouble() ?? 0.0;
-          final currency = plan['currency'] ?? 'DZD';
+          final currency = plan['currency'] ?? 'DZ';
           final suitableFor = plan['suitableFor'] ?? '';
           final isCustomPrice = plan['isCustomPrice'] ?? false;
           final features = (plan['features'] as List?)?.cast<String>() ?? [];
@@ -302,7 +302,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
           final name = addon['name'] ?? '';
           final desc = addon['description'] ?? '';
           final price = (addon['price'] as num?)?.toDouble();
-          final currency = addon['currency'] ?? 'DZD';
+          final currency = addon['currency'] ?? 'DZ';
           final category = addon['category'] ?? 'ADD_ON';
 
           String priceDisplay = 'On Demand';
