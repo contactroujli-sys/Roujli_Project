@@ -872,9 +872,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildStatsRow(List<Stat> stats) {
     return Row(
       children: stats.map((stat) {
-        return Padding(
-          padding: const EdgeInsets.only(right: 10),
-          child: _buildStatCard(stat.value, stat.label, stat.change, stat.isPositive),
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: _buildStatCard(stat.value, stat.label, stat.change, stat.isPositive),
+          ),
         );
       }).toList(),
     );
@@ -886,42 +888,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       String change,
       bool isPositive,
       ) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFF9E9E9E),
-                fontSize: 12,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF9E9E9E),
+              fontSize: 12,
             ),
-            const SizedBox(height: 4),
-            Text(
-              change,
-              style: TextStyle(
-                color: isPositive ? Colors.green : Colors.red,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            change,
+            style: TextStyle(
+              color: isPositive ? Colors.green : Colors.red,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
