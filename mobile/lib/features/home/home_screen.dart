@@ -60,74 +60,97 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       body: SafeArea(
-        child: homeState.isLoading
-            ? const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE8B923)),
-                ),
-              )
-            : homeState.errorMessage != null
-                ? _buildErrorView(homeState.errorMessage!)
-                : homeState.homeData == null
-                    ? const Center(
-                        child: Text(
-                          'No data available',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      )
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-
-                            // Header
-                            _buildHeader(),
-                            const SizedBox(height: 20),
-
-                            // Search Bar
-                            _buildSearchBar(),
-                            const SizedBox(height: 20),
-
-                            // Smart Business Growth Ecosystem (Priority 1-7)
-                            _buildSmartGrowthEcosystemSection(growthState, homeState.homeData!.growthScore),
-                            const SizedBox(height: 20),
-
-                            // Stats Row
-                            _buildStatsRow(homeState.homeData!.stats.cast<Stat>()),
-                            const SizedBox(height: 16),
-
-                            // AI Assistant
-                            _buildAIAssistantCard(),
-                            const SizedBox(height: 24),
-
-                            // Categories
-                            _buildCategoriesSection(homeState.homeData!.categories.cast<Category>()),
-                            const SizedBox(height: 24),
-
-                            // Trending Businesses
-                            _buildTrendingBusinesses(homeState.homeData!.trendingBusinesses.cast<Business>()),
-                            const SizedBox(height: 24),
-
-                            // Recommended For You
-                            _buildRecommendedSection(homeState.homeData!.recommendedBusinesses.cast<Business>()),
-                            const SizedBox(height: 24),
-
-                            // Trending Offers
-                            _buildTrendingOffers(homeState.homeData!.trendingOffers.cast<Offer>()),
-                            const SizedBox(height: 24),
-
-                            // Growing Now
-                            _buildGrowingNowSection(homeState.homeData!.growingBusinesses.cast<Business>()),
-                            const SizedBox(height: 24),
-
-                            // Business Insights
-                            _buildBusinessInsights(homeState.homeData!.businessInsights.cast<BusinessInsight>()),
-                            const SizedBox(height: 30),
-                          ],
-                        ),
+        child: RefreshIndicator(
+          color: const Color(0xFFE8B923),
+          backgroundColor: const Color(0xFF1A1A1A),
+          onRefresh: () async {
+            await Future.wait([
+              ref.read(homeStateProvider.notifier).loadHomeData(),
+              ref.read(growthProvider.notifier).loadGrowthData(),
+            ]);
+          },
+          child: homeState.isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE8B923)),
+                  ),
+                )
+              : homeState.errorMessage != null
+                  ? SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.7,
+                        child: _buildErrorView(homeState.errorMessage!),
                       ),
+                    )
+                  : homeState.homeData == null
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: const Center(
+                              child: Text(
+                                'No data available',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 16),
+
+                              // Header
+                              _buildHeader(),
+                              const SizedBox(height: 20),
+
+                              // Search Bar
+                              _buildSearchBar(),
+                              const SizedBox(height: 20),
+
+                              // Smart Business Growth Ecosystem (Priority 1-7)
+                              _buildSmartGrowthEcosystemSection(growthState, homeState.homeData!.growthScore),
+                              const SizedBox(height: 20),
+
+                              // Stats Row
+                              _buildStatsRow(homeState.homeData!.stats.cast<Stat>()),
+                              const SizedBox(height: 16),
+
+                              // AI Assistant
+                              _buildAIAssistantCard(),
+                              const SizedBox(height: 24),
+
+                              // Categories
+                              _buildCategoriesSection(homeState.homeData!.categories.cast<Category>()),
+                              const SizedBox(height: 24),
+
+                              // Trending Businesses
+                              _buildTrendingBusinesses(homeState.homeData!.trendingBusinesses.cast<Business>()),
+                              const SizedBox(height: 24),
+
+                              // Recommended For You
+                              _buildRecommendedSection(homeState.homeData!.recommendedBusinesses.cast<Business>()),
+                              const SizedBox(height: 24),
+
+                              // Trending Offers
+                              _buildTrendingOffers(homeState.homeData!.trendingOffers.cast<Offer>()),
+                              const SizedBox(height: 24),
+
+                              // Growing Now
+                              _buildGrowingNowSection(homeState.homeData!.growingBusinesses.cast<Business>()),
+                              const SizedBox(height: 24),
+
+                              // Business Insights
+                              _buildBusinessInsights(homeState.homeData!.businessInsights.cast<BusinessInsight>()),
+                              const SizedBox(height: 30),
+                            ],
+                          ),
+                        ),
+        ),
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
@@ -152,7 +175,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
-              ref.read(homeStateProvider.notifier).refreshData();
+              ref.read(homeStateProvider.notifier).loadHomeData();
+              ref.read(growthProvider.notifier).loadGrowthData();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE8B923),
@@ -1854,7 +1878,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          if (index == 1) {
+          if (index == 0) {
+            setState(() => _currentIndex = 0);
+            ref.read(homeStateProvider.notifier).loadHomeData();
+            ref.read(growthProvider.notifier).loadGrowthData();
+          } else if (index == 1) {
             // Explore icon - navigate to explore screen
             context.push('/explore');
           } else if (index == 2) {
@@ -1866,8 +1894,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           } else if (index == 4) {
             // Profile icon - navigate to profile screen
             context.push('/profile');
-          } else {
-            setState(() => _currentIndex = index);
           }
         },
         backgroundColor: const Color(0xFF0A0A0A),
