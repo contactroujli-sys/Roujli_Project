@@ -149,13 +149,20 @@ function InnerApp() {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
 
-  if (isLoginPage || !isAuthenticated) {
+  if (isLoginPage) {
     return (
       <>
         <Outlet />
         <Toaster />
       </>
     );
+  }
+
+  if (!isAuthenticated) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    return <div className="flex h-screen items-center justify-center">Redirecting to login...</div>;
   }
 
   return (
