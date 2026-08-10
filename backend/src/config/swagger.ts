@@ -13,12 +13,13 @@ const options = {
 
     servers: [
       {
-        url: "http://localhost:5000/api",
+        url: "/api",
+        description: "API Server",
       },
     ],
   },
 
-  apis: [],
+  apis: ["./src/modules/**/*.routes.ts", "./src/modules/**/*.ts", "./dist/modules/**/*.routes.js"],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
