@@ -6,22 +6,7 @@ class ApiConstants {
   // Replace this IP with your machine's LAN IP if testing on a real phone.
 
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:5000/api';
-    }
-
-    if (Platform.isAndroid) {
-      // If running in standard Android Emulator, 10.0.2.2 routes to host machine's localhost.
-      // If running on a physical Android device, use host local IP address instead.
-      // Change to _localIp if testing on a physical device over Wi-Fi.
-      return 'http://10.0.2.2:5000/api';
-    }
-
-    if (Platform.isIOS) {
-      return 'http://localhost:5000/api';
-    }
-
-    return 'http://localhost:5000/api';
+    return 'https://roujli-project-eta.vercel.app/api';
   }
 
   static String get socketUrl {
