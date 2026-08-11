@@ -12,6 +12,9 @@ interface SocketUser {
 
 export function initSocketServer(httpServer: HttpServer) {
   const io = new Server(httpServer, {
+    pingTimeout: 20000,
+    pingInterval: 25000,
+    transports: ["websocket", "polling"],
     cors: {
       origin: "*",
       methods: ["GET", "POST"],

@@ -11,11 +11,26 @@ const HOST = process.env.HOST || "0.0.0.0";
 
 if (!process.env.VERCEL) {
   const httpServer = http.createServer(app);
-  initSocketServer(httpServer);
+  const io = initSocketServer(httpServer);
 
-  httpServer.listen(PORT, HOST, () => {
+  const server = httpServer.listen(PORT, HOST, () => {
     logger.info(`Server running on http://${HOST}:${PORT}`);
+    logger.info(`Socket.IO initialized and listening for connections.`);
   });
+
+  const gracefulShutdown = (signal: string) => {
+    logger.info(`${signal} received. Closing HTTP server and Socket.IO...`);
+    io.close(() => {
+      logger.info("Socket.IO connections closed.");
+    });
+    server.close(() => {
+      logger.info("HTTP server closed.");
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 }
 
 export default app;

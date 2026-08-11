@@ -21,7 +21,7 @@ class ChatSocketDataSource {
     _socket = io.io(
       ApiConstants.socketUrl,
       io.OptionBuilder()
-          .setTransports(['websocket'])
+          .setTransports(['websocket', 'polling'])
           .disableAutoConnect()
           .setAuth({'token': token})
           .build(),

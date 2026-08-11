@@ -5,6 +5,7 @@ class ApiConstants {
   // Configurable IP address for physical devices testing on local Wi-Fi.
   // Replace this IP with your machine's LAN IP if testing on a real phone.
 
+  // Set this to your Render service URL after deploying (e.g. 'https://roujli-backend.onrender.com/api')
   static String get baseUrl {
     return 'https://roujli-project-eta.vercel.app/api';
   }

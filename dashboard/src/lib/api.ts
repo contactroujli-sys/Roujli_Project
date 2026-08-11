@@ -18,6 +18,38 @@ export function clearTokens() {
   localStorage.removeItem("roujli_refresh_token");
 }
 
+let refreshPromise: Promise<string | null> | null = null;
+
+async function doRefreshToken(): Promise<string | null> {
+  const currentRefreshToken = getRefreshToken();
+  if (!currentRefreshToken) return null;
+
+  try {
+    const refreshRes = await fetch(`${API_URL}/api/auth/refresh-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken: currentRefreshToken }),
+    });
+
+    if (refreshRes.ok) {
+      const resData = await refreshRes.json();
+      const tokens = resData?.data;
+      if (tokens?.accessToken && tokens?.refreshToken) {
+        setTokens(tokens.accessToken, tokens.refreshToken);
+        return tokens.accessToken as string;
+      }
+    }
+  } catch (err) {
+    console.error("Token refresh failed:", err);
+  }
+
+  clearTokens();
+  if (window.location.pathname !== "/login") {
+    window.location.href = "/login";
+  }
+  return null;
+}
+
 export async function fetchApi(path: string, options: RequestInit = {}) {
   let accessToken = getAccessToken();
 
@@ -33,27 +65,16 @@ export async function fetchApi(path: string, options: RequestInit = {}) {
   let response = await fetch(url, { ...options, headers });
 
   if (response.status === 401 && getRefreshToken()) {
-    // Try to refresh token
-    const refreshRes = await fetch(`${API_URL}/api/auth/refresh-token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: getRefreshToken() }),
-    });
+    if (!refreshPromise) {
+      refreshPromise = doRefreshToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
 
-    if (refreshRes.ok) {
-      const data = await refreshRes.json();
-      setTokens(data.accessToken, data.refreshToken);
-      accessToken = data.accessToken;
-
-      // Retry original request
-      headers.set("Authorization", `Bearer ${accessToken}`);
+    const newAccessToken = await refreshPromise;
+    if (newAccessToken) {
+      headers.set("Authorization", `Bearer ${newAccessToken}`);
       response = await fetch(url, { ...options, headers });
-    } else {
-      clearTokens();
-      // Only reload if we are not already on the login page
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
     }
   }
 

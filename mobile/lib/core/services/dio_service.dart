@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 import '../../shared/services/storage_service.dart';
@@ -33,6 +34,7 @@ class DioService {
 
 class _AuthInterceptor extends Interceptor {
   final Dio _dio;
+  Completer<String?>? _refreshCompleter;
 
   _AuthInterceptor(this._dio);
 
@@ -65,31 +67,52 @@ class _AuthInterceptor extends Interceptor {
       final refreshToken = await StorageService.getRefreshToken();
 
       if (refreshToken != null) {
-        try {
-          final response = await _dio.post(
-            ApiConstants.refreshToken,
-            data: {'refreshToken': refreshToken},
-            options: Options(
-              extra: {'skipAuthInterceptor': true},
-            ),
-          );
+        String? newAccessToken;
 
-          final newAccessToken = response.data['data']['accessToken'] as String;
-          final newRefreshToken = response.data['data']['refreshToken'] as String;
+        if (_refreshCompleter != null) {
+          // A refresh is already in progress, wait for it
+          newAccessToken = await _refreshCompleter!.future;
+        } else {
+          _refreshCompleter = Completer<String?>();
+          try {
+            final response = await _dio.post(
+              ApiConstants.refreshToken,
+              data: {'refreshToken': refreshToken},
+              options: Options(
+                extra: {'skipAuthInterceptor': true},
+              ),
+            );
 
-          await StorageService.saveTokens(
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
-          );
+            newAccessToken = response.data['data']['accessToken'] as String;
+            final newRefreshToken = response.data['data']['refreshToken'] as String;
 
+            await StorageService.saveTokens(
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+            );
+
+            _refreshCompleter?.complete(newAccessToken);
+          } catch (e) {
+            _refreshCompleter?.complete(null);
+            await StorageService.clearAuth();
+            return handler.next(err);
+          } finally {
+            _refreshCompleter = null;
+          }
+        }
+
+        if (newAccessToken != null) {
           // Retry the original request with the new token
           final retryOptions = err.requestOptions;
           retryOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-          final retryResponse = await _dio.fetch(retryOptions);
-          return handler.resolve(retryResponse);
-        } catch (_) {
-          // Refresh failed — clear auth and let the error propagate
-          await StorageService.clearAuth();
+          try {
+            final retryResponse = await _dio.fetch(retryOptions);
+            return handler.resolve(retryResponse);
+          } catch (retryErr) {
+            if (retryErr is DioException) {
+              return handler.next(retryErr);
+            }
+          }
         }
       }
     }

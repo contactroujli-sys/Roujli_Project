@@ -32,7 +32,7 @@ function otpExpiresAt(minutes: number = 10): Date {
 }
 
 function refreshTokenExpiresAt(): Date {
-  return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 }
 
 function toAuthUser(user: { id: string; email: string; role: any; isVerified: boolean; profile: { firstName: string; lastName: string; avatar: string | null } | null }): AuthUser {
