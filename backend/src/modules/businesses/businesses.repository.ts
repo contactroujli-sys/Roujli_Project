@@ -14,6 +14,9 @@ export async function listBusinesses(query: BusinessListQuery, currentUserId?: s
       { name: { contains: search, mode: "insensitive" } },
       { description: { contains: search, mode: "insensitive" } },
       { category: { name: { contains: search, mode: "insensitive" } } },
+      { products: { some: { name: { contains: search, mode: "insensitive" } } } },
+      { services: { some: { name: { contains: search, mode: "insensitive" } } } },
+      { offers: { some: { title: { contains: search, mode: "insensitive" } } } },
     ];
   }
 
@@ -175,4 +178,68 @@ export async function getSavedBusinesses(userId: string) {
     isSaved: true,
     isFollowed: Array.isArray(s.business.followers) ? s.business.followers.length > 0 : false,
   }));
+}
+
+export async function getSearchSuggestions(query: string) {
+  if (!query || query.trim() === "") {
+    return { businesses: [], categories: [], products: [], services: [] };
+  }
+
+  const q = query.trim();
+
+  const [businesses, categories, products, services] = await Promise.all([
+    prisma.business.findMany({
+      where: {
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } },
+        ],
+      },
+      take: 5,
+      include: { category: true },
+    }),
+    prisma.category.findMany({
+      where: { name: { contains: q, mode: "insensitive" } },
+      take: 5,
+    }),
+    prisma.product.findMany({
+      where: { name: { contains: q, mode: "insensitive" } },
+      take: 5,
+      include: { business: { select: { id: true, name: true } } },
+    }),
+    prisma.service.findMany({
+      where: { name: { contains: q, mode: "insensitive" } },
+      take: 5,
+      include: { business: { select: { id: true, name: true } } },
+    }),
+  ]);
+
+  return {
+    businesses: businesses.map((b) => ({
+      id: b.id,
+      name: b.name,
+      category: b.category.name,
+      logo: b.logo,
+      rating: b.rating ?? 0.0,
+    })),
+    categories: categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      icon: c.icon,
+    })),
+    products: products.map((p) => ({
+      id: p.id,
+      title: p.name,
+      price: p.price,
+      businessId: p.businessId,
+      businessName: p.business.name,
+    })),
+    services: services.map((s) => ({
+      id: s.id,
+      title: s.name,
+      price: s.price,
+      businessId: s.businessId,
+      businessName: s.business.name,
+    })),
+  };
 }

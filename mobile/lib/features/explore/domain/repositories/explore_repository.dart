@@ -1,4 +1,5 @@
 import '../entities/explore_business.dart';
+import '../entities/search_suggestion.dart';
 
 abstract class ExploreRepository {
   Future<Map<String, dynamic>> getBusinesses({
@@ -9,6 +10,7 @@ abstract class ExploreRepository {
     int limit = 20,
   });
 
+  Future<SearchSuggestionResult> getSearchSuggestions(String query);
   Future<BusinessDetail> getBusinessById(String id);
   Future<bool> toggleSave(String businessId);
   Future<bool> toggleFollow(String businessId);

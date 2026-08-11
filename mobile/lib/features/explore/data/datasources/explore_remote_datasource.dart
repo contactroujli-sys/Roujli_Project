@@ -3,9 +3,61 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/dio_service.dart';
 import '../models/explore_business_model.dart';
 import '../../domain/entities/explore_business.dart';
+import '../../domain/entities/search_suggestion.dart';
 
 class ExploreRemoteDataSource {
   final Dio _dio = DioService.instance;
+
+  Future<SearchSuggestionResult> getSearchSuggestions(String query) async {
+    if (query.trim().isEmpty) return const SearchSuggestionResult();
+    try {
+      final response = await _dio.get(
+        ApiConstants.searchSuggestions,
+        queryParameters: {'q': query.trim()},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data['data'] ?? {};
+        final List bList = data['businesses'] ?? [];
+        final List cList = data['categories'] ?? [];
+        final List pList = data['products'] ?? [];
+        final List sList = data['services'] ?? [];
+
+        return SearchSuggestionResult(
+          businesses: bList.map((item) => SuggestionItem(
+            id: item['id'] ?? '',
+            title: item['name'] ?? '',
+            type: 'business',
+            subtitle: item['category'] ?? '',
+            logo: item['logo'],
+          )).toList(),
+          categories: cList.map((item) => SuggestionItem(
+            id: item['id'] ?? '',
+            title: item['name'] ?? '',
+            type: 'category',
+          )).toList(),
+          products: pList.map((item) => SuggestionItem(
+            id: item['id'] ?? '',
+            title: item['title'] ?? '',
+            type: 'product',
+            subtitle: item['businessName'] ?? '',
+            businessId: item['businessId'] ?? '',
+            price: item['price'] != null ? (item['price'] as num).toDouble() : null,
+          )).toList(),
+          services: sList.map((item) => SuggestionItem(
+            id: item['id'] ?? '',
+            title: item['title'] ?? '',
+            type: 'service',
+            subtitle: item['businessName'] ?? '',
+            businessId: item['businessId'] ?? '',
+            price: item['price'] != null ? (item['price'] as num).toDouble() : null,
+          )).toList(),
+        );
+      }
+      return const SearchSuggestionResult();
+    } catch (_) {
+      return const SearchSuggestionResult();
+    }
+  }
 
   Future<Map<String, dynamic>> getBusinesses({
     String? search,

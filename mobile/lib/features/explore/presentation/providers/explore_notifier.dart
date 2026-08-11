@@ -12,8 +12,12 @@ class ExploreNotifier extends Notifier<ExploreState> {
     return const ExploreState();
   }
 
-  Future<void> initExplore() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<void> initExplore({String? initialQuery}) async {
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      searchQuery: initialQuery ?? state.searchQuery,
+    );
     try {
       final categories = await _repository.getCategories();
       state = state.copyWith(categories: categories);

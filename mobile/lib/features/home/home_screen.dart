@@ -6,6 +6,8 @@ import '../auth/presentation/screens/verify_email_screen.dart';
 import '../../shared/services/storage_service.dart';
 import '../explore/bussiness_details_screen.dart';
 import '../notifications/unread_notifications_provider.dart';
+import '../../shared/widgets/autocomplete_search_bar.dart';
+import '../explore/domain/entities/search_suggestion.dart';
 import 'domain/entities/home_data.dart';
 import 'presentation/providers/home_provider.dart';
 import 'presentation/providers/growth_provider.dart';
@@ -297,66 +299,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ==================== SEARCH BAR ====================
   Widget _buildSearchBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: Colors.white),
-              onSubmitted: (query) {
-                if (query.trim().isNotEmpty) {
-                  context.push('/explore?q=${Uri.encodeComponent(query.trim())}');
-                }
-              },
-              decoration: const InputDecoration(
-                hintText: 'Search businesses, services...',
-                hintStyle: TextStyle(
-                  color: Color(0xFF6B6B6B),
-                  fontSize: 14,
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Color(0xFF9E9E9E),
-                  size: 22,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        GestureDetector(
-          onTap: () {
-            final query = _searchController.text.trim();
-            context.push('/explore${query.isNotEmpty ? '?q=${Uri.encodeComponent(query)}' : ''}');
-          },
-          child: Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8B923),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Center(
-              child: Text(
-                'Search',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+    return AutocompleteSearchBar(
+      hintText: 'Search businesses, services, products...',
+      onSearchSubmitted: (query) {
+        if (query.isNotEmpty) {
+          context.push('/explore?q=${Uri.encodeComponent(query)}');
+        }
+      },
+      onSuggestionSelected: (item) {
+        if (item.type == 'business') {
+          context.push('/business/${item.id}');
+        } else if (item.type == 'product' || item.type == 'service') {
+          if (item.businessId != null && item.businessId!.isNotEmpty) {
+            context.push('/business/${item.businessId}');
+          } else {
+            context.push('/explore?q=${Uri.encodeComponent(item.title)}');
+          }
+        } else if (item.type == 'category') {
+          context.push('/explore?q=${Uri.encodeComponent(item.title)}');
+        } else {
+          context.push('/explore?q=${Uri.encodeComponent(item.title)}');
+        }
+      },
     );
   }
 

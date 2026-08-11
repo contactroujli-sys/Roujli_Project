@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../shared/widgets/autocomplete_search_bar.dart';
 import 'domain/entities/explore_business.dart';
+import 'domain/entities/search_suggestion.dart';
 import '../home/home_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../profile/profile_screen.dart';
@@ -22,34 +24,20 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   static const Color darkCard = Color(0xFF1A1A1A);
   static const Color darkBg = Color(0xFF0D0D0D);
 
-  final TextEditingController _searchController = TextEditingController();
-  Timer? _debounceTimer;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(exploreStateProvider.notifier).initExplore();
-      // Pre-fill and trigger search if initialQuery provided
-      if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
-        _searchController.text = widget.initialQuery!;
-        ref.read(exploreStateProvider.notifier).search(widget.initialQuery!);
-      }
+      ref.read(exploreStateProvider.notifier).initExplore(initialQuery: widget.initialQuery);
     });
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    _debounceTimer?.cancel();
-    super.dispose();
-  }
-
-  void _onSearchChanged(String query) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
-      ref.read(exploreStateProvider.notifier).search(query);
-    });
+  void didUpdateWidget(covariant ExploreScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialQuery != oldWidget.initialQuery) {
+      ref.read(exploreStateProvider.notifier).search(widget.initialQuery ?? '');
+    }
   }
 
   @override
@@ -78,33 +66,30 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             // Search Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: darkCard,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search businesses, categories...',
-                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-                    prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.5)),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, color: Colors.white54, size: 18),
-                            onPressed: () {
-                              _searchController.clear();
-                              ref.read(exploreStateProvider.notifier).search('');
-                            },
-                          )
-                        : null,
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
+              child: AutocompleteSearchBar(
+                initialValue: exploreState.searchQuery,
+                hintText: 'Search businesses, categories, products...',
+                onSearchSubmitted: (query) {
+                  ref.read(exploreStateProvider.notifier).search(query);
+                },
+                onClear: () {
+                  ref.read(exploreStateProvider.notifier).search('');
+                },
+                onSuggestionSelected: (item) {
+                  if (item.type == 'business') {
+                    context.push('/business/${item.id}');
+                  } else if (item.type == 'product' || item.type == 'service') {
+                    if (item.businessId != null && item.businessId!.isNotEmpty) {
+                      context.push('/business/${item.businessId}');
+                    } else {
+                      ref.read(exploreStateProvider.notifier).search(item.title);
+                    }
+                  } else if (item.type == 'category') {
+                    ref.read(exploreStateProvider.notifier).selectCategory(item.title);
+                  } else {
+                    ref.read(exploreStateProvider.notifier).search(item.title);
+                  }
+                },
               ),
             ),
             const SizedBox(height: 14),

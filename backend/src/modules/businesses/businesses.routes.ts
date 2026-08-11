@@ -11,6 +11,7 @@ router.post("/", authenticate, validate(updateBusinessSchema), controller.create
 router.get("/saved", authenticate, controller.getSaved);
 router.get("/growth", authenticate, controller.getGrowthDetails);
 router.get("/growth/history", authenticate, controller.getGrowthHistory);
+router.get("/suggestions", optionalAuth, controller.getSuggestions);
 router.get("/:id", optionalAuth, controller.getBusinessById);
 router.post("/:id/save", authenticate, controller.toggleSave);
 router.post("/:id/follow", authenticate, controller.toggleFollow);

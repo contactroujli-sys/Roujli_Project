@@ -38,6 +38,7 @@ class ApiConstants {
 
   // Business endpoints
   static const String businesses = '/businesses';
+  static const String searchSuggestions = '/businesses/suggestions';
   static const String businessGrowth = '/businesses/growth';
   static const String categories = '/categories';
   static const String savedBusinesses = '/businesses/saved';

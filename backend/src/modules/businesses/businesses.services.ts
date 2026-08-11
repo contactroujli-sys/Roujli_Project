@@ -14,6 +14,10 @@ export async function getBusinesses(query: BusinessListQuery, userId?: string) {
   return repo.listBusinesses(query, userId);
 }
 
+export async function getSearchSuggestions(query: string) {
+  return repo.getSearchSuggestions(query);
+}
+
 export async function getBusinessById(id: string, userId?: string) {
   return repo.getBusinessById(id, userId);
 }

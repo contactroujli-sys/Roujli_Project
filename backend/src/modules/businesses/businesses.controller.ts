@@ -39,6 +39,19 @@ export async function getBusinesses(req: Request, res: Response, next: NextFunct
   }
 }
 
+export async function getSuggestions(req: Request, res: Response, next: NextFunction) {
+  try {
+    const q = (req.query.q || req.query.search || "") as string;
+    const suggestions = await service.getSearchSuggestions(q);
+    res.status(200).json({
+      success: true,
+      data: suggestions,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getBusinessById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = req.params.id as string;

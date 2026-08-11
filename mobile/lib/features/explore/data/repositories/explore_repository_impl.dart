@@ -1,4 +1,5 @@
 import '../../domain/entities/explore_business.dart';
+import '../../domain/entities/search_suggestion.dart';
 import '../../domain/repositories/explore_repository.dart';
 import '../datasources/explore_remote_datasource.dart';
 
@@ -22,6 +23,9 @@ class ExploreRepositoryImpl implements ExploreRepository {
       page: page,
       limit: limit,
     );
+  @override
+  Future<SearchSuggestionResult> getSearchSuggestions(String query) {
+    return _remoteDataSource.getSearchSuggestions(query);
   }
 
   @override
