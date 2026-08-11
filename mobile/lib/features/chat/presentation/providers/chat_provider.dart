@@ -132,8 +132,17 @@ class ChatMessagesNotifier extends StateNotifier<AsyncValue<List<Message>>> {
     state = AsyncValue.data([...currentList, msg]);
   }
 
-  void sendMessage(String body) {
-    _socket.sendMessage(_conversationId, body);
+  Future<void> sendMessage(String body) async {
+    if (_socket.isConnected) {
+      _socket.sendMessage(_conversationId, body);
+    } else {
+      try {
+        final msg = await _remote.sendMessage(_conversationId, body);
+        _addMessage(msg);
+      } catch (_) {
+        _socket.sendMessage(_conversationId, body);
+      }
+    }
   }
 
   @override

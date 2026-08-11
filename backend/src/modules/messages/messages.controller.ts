@@ -37,3 +37,28 @@ export async function startConversation(req: Request, res: Response, next: NextF
     next(err);
   }
 }
+
+export async function sendMessage(req: Request, res: Response, next: NextFunction) {
+  try {
+    const conversationId = req.params.conversationId as string;
+    const { body } = req.body;
+    const userId = req.userId!;
+    const userRole = req.user?.role || "CUSTOMER";
+    const senderRole = userRole === "BUSINESS" ? "BUSINESS" : "USER";
+
+    if (!body || body.trim() === "") {
+      return res.status(400).json({ success: false, message: "Message body is required" });
+    }
+
+    const message = await services.createMessage({
+      conversationId,
+      body,
+      senderId: userId,
+      senderRole,
+    });
+
+    res.status(201).json({ success: true, data: message });
+  } catch (err) {
+    next(err);
+  }
+}

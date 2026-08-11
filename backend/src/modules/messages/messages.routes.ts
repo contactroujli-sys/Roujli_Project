@@ -6,6 +6,7 @@ const router = Router();
 
 router.get("/", authenticate, controller.getUserConversations);
 router.get("/:conversationId", authenticate, controller.getConversationMessages);
+router.post("/:conversationId", authenticate, controller.sendMessage);
 router.post("/start/:businessId", authenticate, controller.startConversation);
 
 export default router;

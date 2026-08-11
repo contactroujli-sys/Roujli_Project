@@ -11,6 +11,7 @@ class ChatSocketDataSource {
 
   Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
   Stream<Map<String, dynamic>> get typingStream => _typingController.stream;
+  bool get isConnected => _socket != null && _socket!.connected;
 
   Future<void> connect() async {
     if (_socket != null && _socket!.connected) return;
@@ -22,7 +23,10 @@ class ChatSocketDataSource {
       ApiConstants.socketUrl,
       io.OptionBuilder()
           .setTransports(['websocket', 'polling'])
-          .disableAutoConnect()
+          .enableAutoConnect()
+          .enableReconnection()
+          .setReconnectionAttempts(10)
+          .setReconnectionDelay(1000)
           .setAuth({'token': token})
           .build(),
     );

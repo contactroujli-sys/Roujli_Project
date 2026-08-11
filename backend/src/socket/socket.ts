@@ -10,6 +10,18 @@ interface SocketUser {
   role: string;
 }
 
+let ioInstance: Server | null = null;
+
+export function getIO(): Server | null {
+  return ioInstance;
+}
+
+export function broadcastMessage(conversationId: string, message: any) {
+  if (ioInstance) {
+    ioInstance.to(`conv:${conversationId}`).emit("new_message", message);
+  }
+}
+
 export function initSocketServer(httpServer: HttpServer) {
   const io = new Server(httpServer, {
     pingTimeout: 20000,
@@ -20,6 +32,8 @@ export function initSocketServer(httpServer: HttpServer) {
       methods: ["GET", "POST"],
     },
   });
+
+  ioInstance = io;
 
   // Authenticate socket handshake using JWT
   io.use((socket, next) => {

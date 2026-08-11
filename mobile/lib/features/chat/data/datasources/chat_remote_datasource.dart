@@ -22,4 +22,9 @@ class ChatRemoteDataSource {
     final response = await _dio.post('/messages/start/$businessId');
     return Conversation.fromJson(response.data['data'] as Map<String, dynamic>);
   }
+
+  Future<Message> sendMessage(String conversationId, String body) async {
+    final response = await _dio.post('/messages/$conversationId', data: {'body': body});
+    return Message.fromJson(response.data['data'] as Map<String, dynamic>);
+  }
 }

@@ -1,4 +1,5 @@
 import * as repo from "./messages.repository.js";
+import { broadcastMessage } from "../../socket/socket.js";
 
 export async function getUserConversations(userId: string) {
   return repo.getUserConversations(userId);
@@ -25,6 +26,11 @@ export async function createMessage(data: {
   senderRole: string;
 }) {
   const message = await repo.createMessage(data);
+
+  // Broadcast to socket room
+  try {
+    broadcastMessage(data.conversationId, message);
+  } catch (_) {}
 
   // Trigger push notification asynchronously
   setImmediate(async () => {
