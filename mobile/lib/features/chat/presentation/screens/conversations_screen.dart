@@ -112,11 +112,12 @@ class ConversationsScreen extends ConsumerWidget {
               itemCount: conversations.length,
               itemBuilder: (context, index) {
                 final c = conversations[index];
+                final displayName = (c.userName != null && c.userName!.isNotEmpty) ? c.userName! : c.businessName;
                 return _ConversationTile(
                   conversation: c,
                   onTap: () {
                     ref.read(conversationsProvider.notifier).resetUnreadCount(c.id);
-                    context.push('/chat/${c.id}', extra: c.businessName);
+                    context.push('/chat/${c.id}', extra: displayName);
                   },
                 );
               },
@@ -235,10 +236,7 @@ class _ConversationTile extends StatelessWidget {
     final displayLogo = (c.userAvatar != null && c.userAvatar!.isNotEmpty) ? c.userAvatar : c.businessLogo;
 
     return GestureDetector(
-      onTap: () {
-        ref.read(conversationsProvider.notifier).resetUnreadCount(c.id);
-        context.push('/chat/${c.id}', extra: displayName);
-      },
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

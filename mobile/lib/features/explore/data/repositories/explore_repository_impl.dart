@@ -23,6 +23,8 @@ class ExploreRepositoryImpl implements ExploreRepository {
       page: page,
       limit: limit,
     );
+  }
+
   @override
   Future<SearchSuggestionResult> getSearchSuggestions(String query) {
     return _remoteDataSource.getSearchSuggestions(query);

@@ -128,7 +128,7 @@ class _AutocompleteSearchBarState extends ConsumerState<AutocompleteSearchBar> {
             color: const Color(0xFF14141A),
             shadowColor: Colors.black.withValues(alpha: 0.8),
             child: Container(
-              maxHeight: 320,
+              constraints: const BoxConstraints(maxHeight: 320),
               decoration: BoxDecoration(
                 color: const Color(0xFF14141A),
                 borderRadius: BorderRadius.circular(16),
