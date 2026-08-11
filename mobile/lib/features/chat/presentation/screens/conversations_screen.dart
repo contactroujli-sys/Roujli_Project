@@ -231,9 +231,14 @@ class _ConversationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = conversation;
     final hasUnread = c.unreadCount > 0;
+    final displayName = (c.userName != null && c.userName!.isNotEmpty) ? c.userName! : c.businessName;
+    final displayLogo = (c.userAvatar != null && c.userAvatar!.isNotEmpty) ? c.userAvatar : c.businessLogo;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        ref.read(conversationsProvider.notifier).resetUnreadCount(c.id);
+        context.push('/chat/${c.id}', extra: displayName);
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -266,14 +271,14 @@ class _ConversationTile extends StatelessWidget {
                         ? [BoxShadow(color: const Color(0xFFD4AF37).withValues(alpha: 0.3), blurRadius: 8, spreadRadius: 1)]
                         : null,
                   ),
-                  child: c.businessLogo != null && c.businessLogo!.isNotEmpty
+                  child: displayLogo != null && displayLogo.isNotEmpty
                       ? ClipOval(
                           child: Image.network(
-                            c.businessLogo!,
+                            displayLogo,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => Center(
                               child: Text(
-                                c.businessName.isNotEmpty ? c.businessName[0].toUpperCase() : 'B',
+                                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'B',
                                 style: const TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
@@ -285,7 +290,7 @@ class _ConversationTile extends StatelessWidget {
                         )
                       : Center(
                           child: Text(
-                            c.businessName.isNotEmpty ? c.businessName[0].toUpperCase() : 'B',
+                            displayName.isNotEmpty ? displayName[0].toUpperCase() : 'B',
                             style: const TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
@@ -320,7 +325,7 @@ class _ConversationTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          c.businessName,
+                          displayName,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: hasUnread ? FontWeight.bold : FontWeight.w500,

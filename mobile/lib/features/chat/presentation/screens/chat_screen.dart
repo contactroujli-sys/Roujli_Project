@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../shared/services/storage_service.dart';
 import '../providers/chat_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -20,6 +21,27 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUserId();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    final jsonStr = await StorageService.getUserJson();
+    if (jsonStr != null && jsonStr.contains('"id"')) {
+      final match = RegExp(r'"id"\s*:\s*"([^"]+)"').firstMatch(jsonStr);
+      if (match != null && match.group(1) != null) {
+        if (mounted) {
+          setState(() {
+            _currentUserId = match.group(1);
+          });
+        }
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -106,7 +128,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
-                    final isMe = msg.senderRole == 'USER';
+                    final isMe = _currentUserId != null
+                        ? msg.senderId == _currentUserId
+                        : msg.senderRole == 'USER';
 
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,

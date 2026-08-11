@@ -3,9 +3,30 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function getUserConversations(userId: string) {
+  const userBusiness = await prisma.business.findUnique({
+    where: { ownerId: userId },
+    select: { id: true },
+  });
+
+  const whereCondition = userBusiness
+    ? { OR: [{ userId }, { businessId: userBusiness.id }] }
+    : { userId };
+
   return prisma.conversation.findMany({
-    where: { userId },
+    where: whereCondition,
     include: {
+      user: {
+        select: {
+          id: true,
+          profile: {
+            select: {
+              firstName: true,
+              lastName: true,
+              avatar: true,
+            },
+          },
+        },
+      },
       business: {
         select: {
           id: true,
@@ -20,7 +41,7 @@ export async function getUserConversations(userId: string) {
       _count: {
         select: {
           messages: {
-            where: { senderRole: "BUSINESS", isRead: false },
+            where: { isRead: false },
           },
         },
       },
