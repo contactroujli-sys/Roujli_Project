@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env["VITE_API_URL"] || "http://localhost:5000";
+export const API_URL = import.meta.env["VITE_API_URL"] || "https://roujli-project-1.onrender.com";
 
 export function getAccessToken() {
   return localStorage.getItem("roujli_access_token");

@@ -7,7 +7,7 @@ class ApiConstants {
 
   // Set this to your Render service URL after deploying (e.g. 'https://roujli-backend.onrender.com/api')
   static String get baseUrl {
-    return 'https://roujli-project-eta.vercel.app/api';
+    return 'https://roujli-project-1.onrender.com/api';
   }
 
   static String get socketUrl {
