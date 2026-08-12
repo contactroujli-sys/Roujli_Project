@@ -5,10 +5,11 @@ import * as authService from "./auth.services.js";
 
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
-    await authService.register(req.body);
+    const result = await authService.register(req.body);
     res.status(201).json({
       success: true,
       message: "Account created successfully. Please check your email for a verification code.",
+      data: result,
     });
   } catch (err) {
     next(err);

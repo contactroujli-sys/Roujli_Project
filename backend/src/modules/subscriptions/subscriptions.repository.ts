@@ -1,4 +1,5 @@
 import { PrismaClient, SubscriptionType } from "@prisma/client";
+import { AppError } from "../../utils/AppError.js";
 
 const prisma = new PrismaClient();
 
@@ -243,37 +244,24 @@ export async function getUserSubscription(userId: string) {
     orderBy: { createdAt: "desc" },
   });
 
-  if (activeSub) return activeSub;
-
-  // Default to START plan
-  const startPlan = await prisma.subscriptionPlan.findUnique({
-    where: { type: SubscriptionType.START },
-  });
-
-  if (!startPlan) return null;
-
-  return prisma.userSubscription.create({
-    data: {
-      userId,
-      planId: startPlan.id,
-      status: "ACTIVE",
-    },
-    include: { plan: true },
-  });
+  return activeSub;
 }
 
 export async function subscribeUserToPlan(userId: string, planType: SubscriptionType) {
+  const existingSub = await prisma.userSubscription.findFirst({
+    where: { userId, status: "ACTIVE" },
+    include: { plan: true },
+  });
+
+  if (existingSub) {
+    throw new AppError("You have already selected a subscription plan. Plan selection cannot be changed once chosen.", 400);
+  }
+
   const plan = await prisma.subscriptionPlan.findUnique({
     where: { type: planType },
   });
 
-  if (!plan) throw new Error("Invalid subscription plan");
-
-  // Deactivate existing active subscriptions
-  await prisma.userSubscription.updateMany({
-    where: { userId, status: "ACTIVE" },
-    data: { status: "EXPIRED" },
-  });
+  if (!plan) throw new AppError("Invalid subscription plan", 400);
 
   return prisma.userSubscription.create({
     data: {

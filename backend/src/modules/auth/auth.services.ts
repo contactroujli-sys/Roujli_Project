@@ -53,11 +53,24 @@ function toAuthUser(user: { id: string; email: string; role: any; isVerified: bo
 
 // ─── Register ─────────────────────────────────────────────────────────────────
 
-export async function register(input: RegisterInput): Promise<void> {
+export async function register(input: RegisterInput): Promise<AuthResponse> {
   const email = input.email.trim().toLowerCase();
   const existing = await repo.findUserByEmail(email);
+
   if (existing) {
-    throw new AppError("An account with this email already exists.", 409);
+    if (existing.isVerified) {
+      throw new AppError("An account with this email already exists.", 409);
+    }
+    // If the existing user is NOT verified yet, issue a new code so they can complete verification
+    const code = generateOtp();
+    await repo.createVerificationCode(existing.id, code, otpExpiresAt());
+    try {
+      await sendVerificationEmail(input.email, input.firstName || existing.profile?.firstName || "User", code);
+    } catch (e) {
+      console.warn("[Register Warning] Could not send email, OTP code logged:", code);
+    }
+    const tokens = await issueTokens(existing.id, existing);
+    return { user: toAuthUser(existing), tokens };
   }
 
   const hashedPassword = await hashPassword(input.password);
@@ -72,7 +85,14 @@ export async function register(input: RegisterInput): Promise<void> {
 
   const code = generateOtp();
   await repo.createVerificationCode(user.id, code, otpExpiresAt());
-  await sendVerificationEmail(input.email, input.firstName, code);
+  try {
+    await sendVerificationEmail(input.email, input.firstName, code);
+  } catch (e) {
+    console.warn("[Register Warning] Could not send email, OTP code logged:", code);
+  }
+
+  const tokens = await issueTokens(user.id, user);
+  return { user: toAuthUser(user), tokens };
 }
 
 // ─── Verify Email ─────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import type { ProfileData, UpdateProfileData, UpdateBusinessData } from "./profiles.types.js";
 import * as repository from "./profiles.repository.js";
+import prisma from "../../config/prisma.js";
 
 // ─── Get Profile Data ─────────────────────────────────────────────────────
 
@@ -13,9 +14,11 @@ export async function getProfileData(userId: string): Promise<ProfileData> {
   const businessCounts = await repository.getBusinessCounts(userId);
   const membership = await repository.getMembership(userId);
 
-  // Handle null values - 0 for numbers, empty string/hints for text
   const profile = user.profile;
   const business = user.business;
+
+  const followersCount = business ? await prisma.businessFollow.count({ where: { businessId: business.id } }) : 0;
+  const followingCount = await prisma.businessFollow.count({ where: { userId: user.id } });
 
   return {
     user: {
@@ -49,6 +52,8 @@ export async function getProfileData(userId: string): Promise<ProfileData> {
         verified: business.verified,
         growthScore: business.growthScore ?? 0,
         monthlyGrowth: business.monthlyGrowth ?? 0,
+        followersCount,
+        followingCount,
       } : null,
     },
     businessCounts: [

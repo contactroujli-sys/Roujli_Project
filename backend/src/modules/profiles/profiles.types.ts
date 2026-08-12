@@ -29,6 +29,8 @@ export interface UserProfile {
     verified: boolean;
     growthScore: number;
     monthlyGrowth: number;
+    followersCount?: number;
+    followingCount?: number;
   } | null;
 }
 

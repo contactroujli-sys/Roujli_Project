@@ -7,14 +7,52 @@ const prisma = new PrismaClient();
 // ─── Get Home Data ─────────────────────────────────────────────────────────
 
 export async function getHomeData(userId?: string): Promise<HomeData> {
-  // 1. Categories
-  const dbCategories = await prisma.category.findMany({
-    include: {
-      _count: {
-        select: { businesses: true }
+  const [
+    dbCategories,
+    totalBusinessesCount,
+    dbTrending,
+    dbRecommended,
+    dbGrowing,
+    dbOffers,
+    dbInsights,
+  ] = await Promise.all([
+    prisma.category.findMany({
+      include: {
+        _count: {
+          select: { businesses: true }
+        }
       }
-    }
-  });
+    }),
+    prisma.business.count(),
+    prisma.business.findMany({
+      take: 5,
+      orderBy: [
+        { rating: 'desc' },
+        { reviews: 'desc' }
+      ],
+      include: { category: true }
+    }),
+    prisma.business.findMany({
+      take: 5,
+      where: { verified: true },
+      orderBy: { reviews: 'desc' },
+      include: { category: true }
+    }),
+    prisma.business.findMany({
+      take: 5,
+      orderBy: { growthScore: 'desc' },
+      include: { category: true }
+    }),
+    prisma.offer.findMany({
+      take: 5,
+      include: { business: true },
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.businessInsight.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' }
+    })
+  ]);
 
   const categories: HomeCategory[] = dbCategories.map(cat => ({
     id: cat.id,
@@ -24,22 +62,11 @@ export async function getHomeData(userId?: string): Promise<HomeData> {
   }));
 
   // Add the "All" category at the beginning
-  const totalBusinessesCount = await prisma.business.count();
   categories.unshift({
     id: "all",
     name: "All",
     icon: "all",
     businessCount: totalBusinessesCount
-  });
-
-  // 2. Trending Businesses (sorted by rating or reviews)
-  const dbTrending = await prisma.business.findMany({
-    take: 5,
-    orderBy: [
-      { rating: 'desc' },
-      { reviews: 'desc' }
-    ],
-    include: { category: true }
   });
 
   const trendingBusinesses: HomeBusiness[] = dbTrending.map(b => ({
@@ -53,14 +80,6 @@ export async function getHomeData(userId?: string): Promise<HomeData> {
     isVerified: b.verified
   }));
 
-  // 3. Recommended Businesses (verified, sorted by reviews)
-  const dbRecommended = await prisma.business.findMany({
-    take: 5,
-    where: { verified: true },
-    orderBy: { reviews: 'desc' },
-    include: { category: true }
-  });
-
   const recommendedBusinesses: HomeBusiness[] = dbRecommended.map(b => ({
     id: b.id,
     name: b.name,
@@ -71,13 +90,6 @@ export async function getHomeData(userId?: string): Promise<HomeData> {
     location: b.address || "Unknown Location",
     isVerified: b.verified
   }));
-
-  // 4. Growing Businesses (sorted by growthScore)
-  const dbGrowing = await prisma.business.findMany({
-    take: 5,
-    orderBy: { growthScore: 'desc' },
-    include: { category: true }
-  });
 
   const growingBusinesses: HomeBusiness[] = dbGrowing.map(b => ({
     id: b.id,
@@ -90,13 +102,6 @@ export async function getHomeData(userId?: string): Promise<HomeData> {
     isVerified: b.verified
   }));
 
-  // 5. Trending Offers
-  const dbOffers = await prisma.offer.findMany({
-    take: 5,
-    include: { business: true },
-    orderBy: { createdAt: 'desc' }
-  });
-
   const trendingOffers: HomeOffer[] = dbOffers.map(o => ({
     id: o.id,
     title: o.title,
@@ -106,12 +111,6 @@ export async function getHomeData(userId?: string): Promise<HomeData> {
     description: o.description || "",
     expiresAt: o.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   }));
-
-  // 6. Business Insights from Database
-  const dbInsights = await prisma.businessInsight.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' }
-  });
 
   const businessInsights: HomeBusinessInsight[] = dbInsights.length > 0
     ? dbInsights.map(i => ({
