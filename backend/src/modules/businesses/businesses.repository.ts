@@ -31,7 +31,6 @@ export async function listBusinesses(query: BusinessListQuery, currentUserId?: s
         { category: { id: cat } },
         { category: { name: { equals: cat, mode: "insensitive" } } },
         { category: { name: { contains: cat, mode: "insensitive" } } },
-        { category: { slug: { equals: cat, mode: "insensitive" } } },
       ],
     });
   }
