@@ -7,22 +7,36 @@ export async function listBusinesses(query: BusinessListQuery, currentUserId?: s
   const { search, categoryId, sort = "newest", page = 1, limit = 20 } = query;
   const skip = (page - 1) * limit;
 
-  const where: any = {};
+  const andConditions: any[] = [];
 
-  if (search) {
-    where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { description: { contains: search, mode: "insensitive" } },
-      { category: { name: { contains: search, mode: "insensitive" } } },
-      { products: { some: { name: { contains: search, mode: "insensitive" } } } },
-      { services: { some: { name: { contains: search, mode: "insensitive" } } } },
-      { offers: { some: { title: { contains: search, mode: "insensitive" } } } },
-    ];
+  if (search && search.trim().length > 0) {
+    const s = search.trim();
+    andConditions.push({
+      OR: [
+        { name: { contains: s, mode: "insensitive" } },
+        { description: { contains: s, mode: "insensitive" } },
+        { category: { name: { contains: s, mode: "insensitive" } } },
+        { products: { some: { name: { contains: s, mode: "insensitive" } } } },
+        { services: { some: { name: { contains: s, mode: "insensitive" } } } },
+        { offers: { some: { title: { contains: s, mode: "insensitive" } } } },
+      ],
+    });
   }
 
   if (categoryId && categoryId !== "0" && categoryId !== "All") {
-    where.categoryId = categoryId;
+    const cat = categoryId.trim();
+    andConditions.push({
+      OR: [
+        { categoryId: cat },
+        { category: { id: cat } },
+        { category: { name: { equals: cat, mode: "insensitive" } } },
+        { category: { name: { contains: cat, mode: "insensitive" } } },
+        { category: { slug: { equals: cat, mode: "insensitive" } } },
+      ],
+    });
   }
+
+  const where: any = andConditions.length > 0 ? { AND: andConditions } : {};
 
   let orderBy: any = { createdAt: "desc" };
   if (sort === "rating") orderBy = { rating: "desc" };
