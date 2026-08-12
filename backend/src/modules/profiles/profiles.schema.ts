@@ -1,15 +1,5 @@
 import { z } from "zod";
 
-export const updateProfileSchema = z.object({
-  firstName: z.string().trim().min(1).optional(),
-  lastName: z.string().trim().min(1).optional(),
-  phone: z.string().trim().optional(),
-  avatar: z.string().trim().optional(),
-  bio: z.string().trim().optional(),
-  country: z.string().trim().optional(),
-  city: z.string().trim().optional(),
-});
-
 const optionalString = z.preprocess((val) => {
   if (val === null || val === undefined || (typeof val === "string" && val.trim() === "")) return undefined;
   return val;
@@ -19,6 +9,16 @@ const optionalEmail = z.preprocess((val) => {
   if (val === null || val === undefined || (typeof val === "string" && val.trim() === "")) return undefined;
   return val;
 }, z.string().trim().email().optional());
+
+export const updateProfileSchema = z.object({
+  firstName: optionalString,
+  lastName: optionalString,
+  phone: optionalString,
+  avatar: optionalString,
+  bio: optionalString,
+  country: optionalString,
+  city: optionalString,
+});
 
 export const updateBusinessSchema = z.object({
   id: optionalString,

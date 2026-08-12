@@ -93,8 +93,8 @@ export async function getProfileData(userId: string): Promise<ProfileData> {
 // ─── Update Profile Data ───────────────────────────────────────────────────
 
 export async function updateProfileData(userId: string, updateData: UpdateProfileData) {
-  const user = await repository.updateUserProfile(userId, updateData);
-  return user;
+  await repository.updateUserProfile(userId, updateData);
+  return getProfileData(userId);
 }
 
 // ─── Update Business Data ──────────────────────────────────────────────────
